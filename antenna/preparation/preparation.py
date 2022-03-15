@@ -6,6 +6,7 @@ import os
 location = '/media/f140926/Extreme SSD/Data - Location/Hummingbird_Location_Datas/E_Cell_tower_usage_data/E_Cell_tower_usage_data_202001.txt'
 # tower_location = r"/Volumes/Extreme SSD/Data - Location/Hummingbird_Location_Datas/A_Cell_Tower_Locations/cell_city_district.txt"
 tower_location = '/media/f140926/Extreme SSD/Data - Location/Hummingbird_Location_Datas/A_Cell_Tower_Locations/cell_city_district.txt'
+
 def read_merge_antenna_flows(is_repeat, omit=True):
     print("Reading antenna data...\n")
     df_trans = pd.DataFrame()
@@ -50,7 +51,12 @@ def read_antenna_flows(antenna_location):
     df[df.columns[1:16]] = df[df.columns[1:16]].astype(int)
     df['time'] = df['time'].astype(str).apply(lambda x: x.strip())
     df['time'] = pd.to_datetime(df['time'], format = "%Y-%M-%d %H")
+    return df
+
     print("Reading tower data...\n")
+
+def read_tower_data(tower_location):
+
     tower = pd.read_csv(
         tower_location,
         sep="|",
@@ -61,9 +67,8 @@ def read_antenna_flows(antenna_location):
     tower = tower.rename(columns=lambda x: x.strip())
     tower = tower.rename(columns={'matcher': 'site_id'})
     tower['site_id'] = tower['site_id'].astype(int)
-    df = df.merge(tower, on='site_id', how='left')
-    print('There are {} cell towers in the dataset'.format(df.site_id.nunique()))
-    return df
+    #print('There are {} cell towers in the dataset'.format(df.site_id.nunique()))
+    return tower
 
 if __name__ == "__main__":
     df = read_antenna_flows(location)
