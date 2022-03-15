@@ -2,10 +2,12 @@ import os
 import pandas as pd
 import os
 
-
+# location = '/Volumes/Extreme SSD/Data - Location/Hummingbird_Location_Datas/Trial/'
+location = '/media/f140926/Extreme SSD/Data - Location/Hummingbird_Location_Datas/E_Cell_tower_usage_data/E_Cell_tower_usage_data_202001.txt'
+# tower_location = r"/Volumes/Extreme SSD/Data - Location/Hummingbird_Location_Datas/A_Cell_Tower_Locations/cell_city_district.txt"
+tower_location = '/media/f140926/Extreme SSD/Data - Location/Hummingbird_Location_Datas/A_Cell_Tower_Locations/cell_city_district.txt'
 def read_merge_antenna_flows(is_repeat, omit=True):
     print("Reading antenna data...\n")
-    location = '/Volumes/Extreme SSD/Data - Location/Hummingbird_Location_Datas/Trial/'
     df_trans = pd.DataFrame()
     for f in os.listdir(location):
         if 'E_Cell_tower_usage_data_2020' in f:
@@ -46,8 +48,11 @@ def read_antenna_flows(antenna_location):
     df = df.rename(columns=lambda x: x.strip())
     df = df[df['segment_2'] != "--------------------"]
     df[df.columns[1:16]] = df[df.columns[1:16]].astype(int)
+    df['time'] = df['time'].astype(str).apply(lambda x: x.strip())
+    df['time'] = pd.to_datetime(df['time'], format = "%Y-%M-%d %H")
+    print("Reading tower data...\n")
     tower = pd.read_csv(
-        r"/Volumes/Extreme SSD/Data - Location/Hummingbird_Location_Datas/A_Cell_Tower_Locations/cell_city_district.txt",
+        tower_location,
         sep="|",
         header=0, encoding='ISO-8859-1')
     tower = tower.drop(['Unnamed: 0', 'Unnamed: 4'], axis=1)
@@ -61,5 +66,6 @@ def read_antenna_flows(antenna_location):
     return df
 
 if __name__ == "__main__":
-    df = read_antenna_flows('/Volumes/Extreme SSD/Data - Location/Hummingbird_Location_Datas/E_Cell_tower_usage_data/E_Cell_tower_usage_data_202001.txt')
-
+    df = read_antenna_flows(location)
+    group = df.groupby([df['time'].dt.month.rename('Month'),df['site_id'], df['segment']]).mean(axis=1).rename('Monthly average use').reset_index()
+    group.head()
